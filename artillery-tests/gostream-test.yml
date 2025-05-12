@@ -1,0 +1,24 @@
+config:
+  target: "https://gostream-auth.fly.dev"
+  phases:
+    - duration: 30
+      arrivalRate: 2
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: "User Registration"
+    flow:
+      - post:
+          url: "/api/register"
+          json:
+            name: "LoadTestUser"
+            email: "loadtest_{{ $randomString(5) }}@test.com"
+            password: "test1234"
+
+
+ # - name: "Video Playback"
+  #  flow:
+   #   - get:
+    #      url: "/api/content/videos"   # change if your playback endpoint is different

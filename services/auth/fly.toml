@@ -1,0 +1,39 @@
+app = "gostream-auth"
+primary_region = "lax"
+
+[build]
+
+[env]
+  MONGO_URI = "mongodb://mongo-service:27017/gostream-auth"
+  RESEND_API_KEY = "re_C7fydFgH_2pyzotfydMfsEyoSvTUcrRjz"
+  REACT_APP_AUTH_API_URL = "http://localhost:5001/api"
+  REACT_APP_CONTENT_API_URL = "http://localhost:5002/api"
+  REACT_APP_SUBSCRIPTION_API_URL = "http://localhost:5003/api"
+
+[http_service]
+  internal_port = 5001
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 20
+    hard_limit = 40
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/api/auth/test"
+    protocol = "http"
+    tls_skip_verify = false
+
+[[vm]]
+  memory = "1024mb"
+  cpu_kind = "shared"
+  cpus = 1

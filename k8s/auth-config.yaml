@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-config
+data:
+  JWT_SECRET: supersecretkey
+  MONGODB_URI: mongodb://mongodb-service:27017/gostream-auth
+  RESEND_API_KEY: re_C7fydFgH_2pyzotfydMfsEyoSvTUcrRjz

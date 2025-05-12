@@ -1,0 +1,22 @@
+{
+  "name": "gostream",
+  "version": "1.0.0",
+  "description": "A modern streaming platform with microservices architecture",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run start:auth\" \"npm run start:content\" \"npm run start:subscription\" \"npm run start:frontend\"",
+    "start:auth": "cd services/auth && npm start",
+    "start:content": "cd services/content && npm start",
+    "start:subscription": "cd services/subscription && npm start",
+    "start:frontend": "cd frontend && npm start",
+    "install:all": "npm install && cd services/auth && npm install && cd ../content && npm install && cd ../subscription && npm install && cd ../../frontend && npm install"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2",
+    "react-confetti": "^6.4.0",
+    "react-toastify": "^11.0.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

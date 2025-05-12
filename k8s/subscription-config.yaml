@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: subscription-config
+data:
+  MONGODB_URI: mongodb://mongodb-service:27017/gostream-subscription
+  STRIPE_SECRET_KEY=your_stripe_key_here

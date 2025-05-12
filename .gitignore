@@ -1,0 +1,31 @@
+# Node.js dependencies
+node_modules/
+frontend/node_modules/
+services/**/node_modules/
+
+# Build artifacts
+dist/
+build/
+frontend/dist/
+
+# Cache & upload folders
+.cache/
+uploads/
+frontend/.cache/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+frontend/.env
+services/**/.env
+
+# OS-specific files
+.DS_Store
+
+# Archives
+*.zip
+
+# Test or coverage results (optional)
+coverage/

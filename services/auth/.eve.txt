@@ -1,0 +1,4 @@
+REACT_APP_AUTH_API_URL=http://localhost:5001/api
+REACT_APP_CONTENT_API_URL=http://localhost:5002/api
+REACT_APP_SUBSCRIPTION_API_URL=http://localhost:5003/api
+MONGODB_URI=mongodb://remoteUser:1234567890@10.117.187.86:27017/gostream-auth?authSource=admin
