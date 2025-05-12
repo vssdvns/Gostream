@@ -1,3 +1,15 @@
+## Running Locally
+
+1. Clone the repo  
+   `git clone https://github.com/vssdvns/Gostream.git`
+
+2. Install dependencies  
+   `cd services/auth && npm install` (and so on for each service)
+
+3. Create `.env` files (based on `.env.example`)
+
+4. Run services  
+   `npm start`
 
 GoStream - Deployment and Connection Guide
 ==========================================
