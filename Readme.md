@@ -1,177 +1,184 @@
-## Running Locally
+# GoStream
 
-1. Clone the repo  
-   `git clone https://github.com/vssdvns/Gostream.git`
+**Full-stack video streaming platform built with React, Node.js microservices, MongoDB, FFmpeg, and Stripe.**
 
-2. Install dependencies  
-   `cd services/auth && npm install` (and so on for each service)
+GoStream is an end-to-end streaming application combining a React user interface with independently deployable services for authentication, content management, subscriptions, and video encoding. The project explores the engineering challenges behind a streaming product: media ingestion and processing, service-to-service communication, payment integration, containerization, and cloud deployment.
 
-3. Create `.env` files (based on `.env.example`)
+## Highlights
 
-4. Run services  
-   `npm start`
+- **Streaming experience:** video browsing, playback, profiles, personal lists, and dedicated movie/TV pages.
+- **Authentication and access control:** registration, login, JWT-based authentication, protected routes, and administrative functionality.
+- **Video management and processing:** upload workflows backed by a content service and an FFmpeg-based encoder with a health endpoint.
+- **Subscriptions:** Stripe-powered plans, subscription management, and webhook handling.
+- **Service-oriented backend:** separate Node.js/Express services with MongoDB persistence.
+- **Deployment tooling:** Dockerfiles, Fly.io configurations, Kubernetes manifests, NGINX ingress, and TLS configuration.
+- **Load-testing example:** an Artillery scenario for user registration.
 
-GoStream - Deployment and Connection Guide
-==========================================
+## Technology stack
 
-Overview:
----------
-GoStream is a microservice-based video streaming platform that supports hybrid deployment 
-with encoding on an Ubuntu edge server and all core services (frontend, auth, content, subscription)
-hosted on Fly.io. It also integrates Stripe for subscriptions and Resend for email delivery.
+| Layer | Technologies |
+| --- | --- |
+| Frontend | React 18, React Router, Redux Toolkit, Material UI, Axios, React Player |
+| Backend | Node.js, Express, REST APIs |
+| Data and authentication | MongoDB, Mongoose, JWT, bcrypt |
+| Video processing | FFmpeg, Multer |
+| Payments and notifications | Stripe, Resend integration |
+| Infrastructure | Docker, Fly.io, Kubernetes, NGINX, cert-manager |
+| Testing | Jest tooling, Artillery load-test configuration |
 
+## Architecture
 
-Team Memebers :
---------------
-1) Siddhartha Vinnakota
-2) Manohar Adapa
-3) Sanjay Manda
-4) Vishal Reddy Vadde
-5) Rishma Sree Pathakamuri
+```text
+                      +----------------------+
+                      |   React Frontend     |
+                      |  Browse / Play / UI  |
+                      +----------+-----------+
+                                 |
+                         HTTPS / REST APIs
+                                 |
+            +--------------------+--------------------+
+            |                    |                    |
+     +------v------+      +------v------+      +------v--------+
+     | Auth Service|      |Content Service|     | Subscription  |
+     | JWT / Users |      | Videos/Uploads|     | Stripe/Webhook |
+     +------+------+      +------+-------+     +------+--------+
+            |                    |                    |
+        MongoDB               MongoDB               MongoDB
+                                 |
+                         Video encoding flow
+                                 |
+                         +-------v--------+
+                         | Encoder Service|
+                         |     FFmpeg     |
+                         +----------------+
+```
 
-Contributions:
---------------
+The repository contains both **Fly.io deployment files** for individual components and **Kubernetes manifests** for a container-orchestrated deployment. The original project documentation also describes a hybrid setup with a self-hosted Ubuntu encoder exposed through an HTTPS tunnel. These are deployment approaches represented in the project, not a claim that every environment is currently live.
 
-1) Siddhartha Vinnakota : Led the overall architecture design and domain setup (webstream258.online), 
-                          built communication between services,
-                          Integrated FFmpeg for encoding and exposed the service securely using ngrok
+## Repository structure
 
-2) Manohar Adapa        : Configured and ran the video encoder service on a self-hosted Ubuntu server
-                          and authentication service with JWT and MongoDB
-
-3) Sanjay Manda         : Developed the content service with fallback logic for video uploads,
-                          Implemented health checks to detect encoder availability. assisted in cloud deployment 
-
-4) Vishal Reddy Vadde   : Led the frontend development, connecting all backend 
-                          services to the user interface , devloped email service.
-
-5) Rishma Sree Pathakamuri: Built the subscription service using Stripe API , 
-                            Managed plan-based access logic and data consistency in MongoDB
-
-
-
-
-Project Structure:
-------------------
-GoStream/
-├── frontend/               # React frontend hosted on Fly.io
+```text
+Gostream/
+├── frontend/                       # React interface and pages
 ├── services/
-│   ├── auth/              # Auth service (Fly.io)
-│   ├── content/           # Content service (Fly.io)
-│   ├── subscription/      # Subscription service (Fly.io)
-│   └── encoder/           # Video encoder (self-hosted on Ubuntu via Ngrok)
+│   ├── auth/                        # Accounts, authentication, user management
+│   ├── content/                     # Videos and upload endpoints
+│   ├── subscription/                # Stripe subscriptions and webhooks
+│   └── video-encoder-service/       # FFmpeg processing and health endpoint
+├── k8s/                             # Kubernetes workloads, services, ingress, TLS
+├── artillery-tests/                 # Load-testing configuration
+├── package.json                     # Root development scripts
+└── Readme.md
+```
 
-Prerequisites:
---------------
-- Node.js (v14+)
-- Docker
-- Git
-- Ngrok (for encoder tunneling)
-- MongoDB Atlas account
-- Fly.io account
-- Stripe account
-- Resend account (email API)
+## Getting started
 
-Environment Variable Setup:
----------------------------
+### Prerequisites
 
-1. Auth Service (.env)
-----------------------
+- Node.js and npm (use an actively supported Node.js LTS release compatible with these dependencies)
+- MongoDB instance or MongoDB Atlas connection string
+- Stripe test-mode credentials for subscription features
+- An available FFmpeg encoder service for video-processing workflows
+
+Docker, Kubernetes, Fly.io, and ngrok are **optional** and needed only for the corresponding deployment approach.
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/vssdvns/Gostream.git
+cd Gostream
+npm run install:all
+cd services/video-encoder-service && npm install
+cd ../..
+```
+
+The root `install:all` script installs the frontend, auth, content, and subscription dependencies. Install the encoder's dependencies separately as shown.
+
+### 2. Configure environment variables
+
+Create local `.env` files for each service as appropriate. **Never commit real credentials.** For example:
+
+**`services/auth/.env`**
+```dotenv
 PORT=5001
-MONGODB_URI=<MongoDB URI for auth>
-JWT_SECRET=your_jwt_secret
-RESEND_API_KEY=your_resend_api_key
-FROM_EMAIL=no-reply@yourdomain.com
+MONGODB_URI=mongodb://127.0.0.1:27017/gostream-auth
+JWT_SECRET=replace-with-a-long-random-secret
+```
 
-2. Content Service (.env)
--------------------------
-PORT=5002
-MONGODB_URI=<MongoDB URI for content>
-ENCODER_SERVICE_URL=https://<ngrok-url>
-
-3. Subscription Service (.env)
-------------------------------
+**`services/content/.env`**
+```dotenv
 PORT=5003
-MONGODB_URI=<MongoDB URI for subscription>
-STRIPE_SECRET_KEY=your_stripe_secret
-STRIPE_BASIC_PRICE_ID=your_basic_id
-STRIPE_STANDARD_PRICE_ID=your_standard_id
-STRIPE_PREMIUM_PRICE_ID=your_premium_id
-STRIPE_WEBHOOK_SECRET=your_webhook_secret
+MONGODB_URI=mongodb://127.0.0.1:27017/gostream-content
+```
 
-4. Frontend (.env)
-------------------
-REACT_APP_API_URL=https://webstream258.online/api
-REACT_APP_STRIPE_PUBLISHABLE_KEY=your_publishable_key
+**`services/subscription/.env`**
+```dotenv
+PORT=5002
+MONGODB_URI=mongodb://127.0.0.1:27017/gostream-subscriptions
+STRIPE_SECRET_KEY=sk_test_replace_me
+STRIPE_BASIC_PRICE_ID=price_replace_me
+STRIPE_STANDARD_PRICE_ID=price_replace_me
+STRIPE_PREMIUM_PRICE_ID=price_replace_me
+STRIPE_WEBHOOK_SECRET=whsec_replace_me
+AUTH_API_URL=http://localhost:5001
+CONTENT_API_URL=http://localhost:5003
+SUBSCRIPTION_API_URL=http://localhost:5002
+```
 
-Deployment Steps:
------------------
+Set the frontend's `REACT_APP_*` configuration for your local API endpoints and Stripe publishable key according to the integration being used. The example ports above align with the Kubernetes ingress service mappings; verify the port defaults and API URLs in your environment before launching.
 
-Step 1: Deploy Core Services to Fly.io
---------------------------------------
-- Initialize each service:
-  fly launch
-- Set environment secrets:
-  fly secrets set JWT_SECRET=... RESEND_API_KEY=... STRIPE_SECRET_KEY=...
-- Deploy:
-  fly deploy
+### 3. Run the application
 
-Repeat for:
-- services/auth
-- services/content
-- services/subscription
-- frontend
+In one terminal, start the main services and frontend using the repository script:
 
-Step 2: Host Encoder Service on Ubuntu
---------------------------------------
-- Clone repo or save the encoder file in server and navigate to encoder directory:
-  git clone <repo-url>
-  cd services/encoder
-- Install dependencies:
-  npm install
-- Start server:
-  node index.js
+```bash
+npm start
+```
 
-Step 3: Expose Encoder with Ngrok
----------------------------------
-- Install ngrok:
-  sudo snap install ngrok
-- Run:
-  ngrok http 4000
-- Copy HTTPS tunnel and update content service's ENCODER_SERVICE_URL.
+In another terminal, run the encoder:
 
-Step 4: Deploy MongoDB Atlas
-----------------------------
-- Create a cluster on MongoDB Atlas
-- Whitelist your IP
-- Create databases for auth, content, and subscription
-- Use connection strings in respective .env files
+```bash
+cd services/video-encoder-service
+npm start
+```
 
-Step 5: Stripe Configuration
-----------------------------
-- Create 3 products in Stripe (Basic, Standard, Premium)
-- Copy price IDs
-- Setup webhook:
-  stripe listen --forward-to localhost:5003/api/webhook
-- Add webhook secret to .env
+The encoder exposes `GET /health` and `POST /encode`. Review the frontend and service configuration for the exact base URLs used in your setup.
 
-Step 6: Domain and HTTPS (via Fly.io)
--------------------------------------
-- Purchase and configure DNS (e.g., webstream258.online)
-- Point DNS to Fly.io services
-- Fly automatically provisions HTTPS certificates
+> **Setup note:** This repository includes configuration for multiple deployment environments. Local startup may require adjusting hard-coded endpoints, CORS settings, or service URLs. A successful dependency install alone does not guarantee all external integrations are configured.
 
-Final Check:
-------------
-- Encoder reachable via ngrok
-- Frontend accessible at https://webstream258.online
-- Auth and subscription working
-- Video uploads route correctly (encoder fallback working)
-- Stripe test payments succeed
-- Emails sent via Resend
+## Deployment options
 
-Security Tips:
---------------
-- Never commit `.env` files
-- Use Fly.io secrets for production to assign keys 
-- Use HTTPS
+### Containerized / Kubernetes deployment
+
+The `k8s/` directory includes manifests for the frontend and API services, environment configuration, an NGINX ingress, and certificate management. Configure your container images, secrets, DNS, and cluster-specific settings before applying manifests.
+
+### Fly.io + Ubuntu encoder
+
+The repository also includes `fly.toml` files and Dockerfiles for service deployment. In the hybrid approach documented during development, the core application ran on Fly.io while video encoding ran on Ubuntu and was exposed through ngrok. For this topology:
+
+1. Deploy the application services and configure their environment secrets.
+2. Start `services/video-encoder-service/` on the Ubuntu machine.
+3. Expose the encoder securely and connect the upload-processing flow to its reachable endpoint.
+4. Configure MongoDB, Stripe webhooks, service URLs, DNS, and HTTPS.
+
+**Do not expose administrative endpoints, credentials, or unauthenticated upload/encode endpoints publicly without appropriate safeguards.**
+
+## Testing
+
+The repository contains an Artillery load-test example under `artillery-tests/gostream-test.yml`. It targets a registration endpoint and can be adapted to the environment under test. This is a test configuration, **not a published throughput or scalability benchmark**.
+
+## Engineering focus
+
+GoStream demonstrates practical full-stack and cloud engineering across API design, distributed service integration, video-processing workflows, payment handling, frontend state management, and deployment configuration. Its different infrastructure configurations make it useful for experimenting with trade-offs between separately hosted services and Kubernetes orchestration.
+
+## Security and operations
+
+- Use environment variables or managed secrets for MongoDB, JWT, Stripe, and email API keys.
+- Use Stripe **test mode** during local development and validate webhooks.
+- Configure HTTPS, appropriate CORS policies, and authentication for sensitive routes.
+- Keep development credentials out of version control; rotate any secrets that were previously committed.
+- Validate service health, media upload limits, and storage handling before production use.
+
+---
+
+**Project repository:** [vssdvns/Gostream](https://github.com/vssdvns/Gostream)
